@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وكالة السيارات</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background: #f0f0f0;
+        }
+        header {
+            background: #1a3a5f;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .filters {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #ddd;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .filter-btn.active {
+            background: #1a3a5f;
+            color: white;
+        }
+        .cars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .car-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+        .car-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .car-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .car-info {
+            padding: 15px;
+        }
+        .car-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .car-brand {
+            color: #666;
+            margin: 5px 0;
+        }
+        .car-price {
+            color: #1a3a5f;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80%;
+            overflow: auto;
+        }
+        .close {
+            float: right;
+            font-size: 25px;
+            cursor: pointer;
+        }
+        .add-form, .contact-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 40px;
+        }
+        .add-form input, .add-form textarea,
+        .contact-form input, .contact-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .add-form button, .contact-form button {
+            background: #1a3a5f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .message {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        footer {
+            background: #1a3a5f;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+        h3 {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>🚗 وكالة السيارات</h1>
+    <p>أفضل العروض على السيارات الجديدة والمستعملة</p>
+</header>
+
+<div class="container">
+    <div class="filters" id="filters"></div>
+    <div class="cars-grid" id="carsGrid"></div>
+
+    <div class="add-form">
+        <h3>➕ إضافة سيارة جديدة (للمدير)</h3>
+        <input type="text" id="carName" placeholder="الموديل (مثال: Toyota Camry)">
+        <input type="text" id="carBrand" placeholder="العلامة التجارية">
+        <input type="number" id="carPrice" placeholder="السعر بالدولار">
+        <input type="text" id="carYear" placeholder="سنة الصنع">
+        <input type="text" id="carImage" placeholder="رابط الصورة">
+        <textarea id="carSpecs" placeholder="المواصفات" rows="3"></textarea>
+        <button onclick="addCar()">➕ إضافة سيارة</button>
+        <div id="addMessage" class="message"></div>
+    </div>
+
+    <div class="contact-form">
+        <h3>📞 تواصل معنا - حجز تجربة قيادة</h3>
+        <input type="text" id="contactName" placeholder="الاسم الكامل">
+        <input type="email" id="contactEmail" placeholder="البريد الإلكتروني">
+        <input type="tel" id="contactPhone" placeholder="رقم الهاتف">
+        <textarea id="contactMsg" placeholder="رسالتك" rows="3"></textarea>
+        <button onclick="sendContact()">📨 إرسال</button>
+        <div id="contactMessage" class="message"></div>
+    </div>
+</div>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<footer>
+    <p>© 2025 وكالة السيارات - جميع الحقوق محفوظة</p>
+</footer>
+
+<script>
+    // بيانات السيارات الأولية
+    let cars = [
+        {id: 1, name: "Toyota Camry", brand: "Toyota", price: 35000, year: 2024, image: "https://via.placeholder.com/300x180?text=Toyota+Camry", specs: "محرك 2.5 لتر، ناقل أوتوماتيك، 25000 كم"},
+        {id: 2, name: "Honda Accord", brand: "Honda", price: 33000, year: 2024, image: "https://via.placeholder.com/300x180?text=Honda+Accord", specs: "محرك 2.0 لتر، ناقل CVT، 15000 كم"},
+        {id: 3, name: "BMW X5", brand: "BMW", price: 65000, year: 2023, image: "https://via.placeholder.com/300x180?text=BMW+X5", specs: "محرك 3.0 تيربو، دفع رباعي، 30000 كم"}
+    ];
+    
+    let currentFilter = "All";
+
+    // استخراج العلامات التجارية الفريدة
+    function getBrands() {
+        let brands = ["All"];
+        for(let i = 0; i < cars.length; i++) {
+            if(!brands.includes(cars[i].brand)) {
+                brands.push(cars[i].brand);
+            }
+        }
+        return brands;
+    }
+
+    // عرض أزرار التصفية
+    function showFilters() {
+        let brands = getBrands();
+        let html = "";
+        for(let i = 0; i < brands.length; i++) {
+            let activeClass = (currentFilter === brands[i]) ? "active" : "";
+            html += <button class="filter-btn ${activeClass}" onclick="filterCars('${brands[i]}')">${brands[i]}</button>;
+        }
+        document.getElementById("filters").innerHTML = html;
+    }
+
+    // تصفية السيارات
+    function filterCars(brand) {
+        currentFilter = brand;
+        showFilters();
+        displayCars();
+    }
+
+    // عرض السيارات
+    function displayCars() {
+        let filteredCars = [];
+        if(currentFilter === "All") {
+            filteredCars = cars;
+        } else {
+            for(let i = 0; i < cars.length; i++) {
+                if(cars[i].brand === currentFilter) {
+                    filteredCars.push(cars[i]);
+                }
+            }
+        }
+        
+        let html = "";
+        for(let i = 0; i < filteredCars.length; i++) {
+            html += `
+                <div class="car-card" onclick="showDetails(${filteredCars[i].id})">
+                    <img src="${filteredCars[i].image}" alt="${filteredCars[i].name}">
+                    <div class="car-info">
+                        <div class="car-name">${filteredCars[i].name}</div>
+                        <div class="car-brand">${filteredCars[i].brand}</div>
+                        <div class="car-price">$${filteredCars[i].price.toLocaleString()}</div>
+                        <div>سنة: ${filteredCars[i].year}</div>
+                    </div>
+                </div>
+            ;
+        }
+        
+        if(html === "") {
+            html = "<p style='text-align:center'>لا توجد سيارات في هذه الفئة</p>";
+        }
+        
+        document.getElementById("carsGrid").innerHTML = html;
+    }
+
+    // عرض تفاصيل السيارة
+    function showDetails(id) {
+        let car = null;
+        for(let i = 0; i < cars.length; i++) {
+            if(cars[i].id === id) {
+                car = cars[i];
+                break;
+            }
+        }
+        
+        let modalHtml = 
+            <h2>${car.name}</h2>
+            <img src="${car.image}" style="width:100%; border-radius:10px; margin:10px 0;">
+            <p><strong>العلامة:</strong> ${car.brand}</p>
+            <p><strong>السعر:</strong> $${car.price.toLocaleString()}</p>
+            <p><strong>سنة الصنع:</strong> ${car.year}</p>
+            <p><strong>المواصفات:</strong> ${car.specs}</p>
+            <hr>
+            <p><strong>📞 للتواصل:</strong> 123-456-789</p>
+        `;
+        
+        document.getElementById("modalBody").innerHTML = modalHtml;
+        document.getElementById("modal").style.display = "flex";
+    }
+
+    // إغلاق النافذة المنبثقة
+    function closeModal() {
+        document.getElementById("modal").style.display = "none";
+    }
+
+    // إضافة سيارة جديدة
+    function addCar() {
+        let name = document.getElementById("carName").value;
+        let brand = document.getElementById("carBrand").value;
+        let price = document.getElementById("carPrice").value;
+        let year = document.getElementById("carYear").value;
+        let image = document.getElementById("carImage").value;
+        let specs = document.getElementById("carSpecs").value;
+        let msgDiv = document.getElementById("addMessage");
+        
+        if(name === ""  brand === ""  price === ""  year === ""  image === "" || specs === "") {
+            msgDiv.textContent = "❌ الرجاء تعبئة جميع الحقول";
+            msgDiv.className = "message error";
+            setTimeout(function() { msgDiv.className = "message"; }, 2000);
+            return;
+        }
+        
+        let newId = cars.length + 1;
+        let newCar = {
+            id: newId,
+            name: name,
+            brand: brand,
+            price: parseInt(price),
+            year: year,
+            image: image,
+            specs: specs
+        };
+        
+        cars.push(newCar);
+        
+        // تفريغ الحقول
+        document.getElementById("carName").value = "";
+        document.getElementById("carBrand").value = "";
+        document.getElementById("carPrice").value = "";
+        document.getElementById("carYear").value = "";
+        document.getElementById("carImage").value = "";
+        document.getElementById("carSpecs").value = "";
+        
+        // تحديث الواجهة
+        showFilters();
+        displayCars();
+        
+        msgDiv.textContent = "✅ تمت إضافة السيارة بنجاح!";
+        msgDiv.className = "message success";
+        setTimeout(function() { msgDiv.className = "message"; }, 2000);
+    }
+
+    // إرسال نموذج الاتصال
+    function sendContact() {
+        let name = document.getElementById("contactName").value;
+        let email = document.getElementById("contactEmail").value;
+        let phone = document.getElementById("contactPhone").value;
+        let msg = document.getElementById("contactMsg").value;
+        let msgDiv = document.getElementById("contactMessage");
+      if(name === ""  email === ""  phone === "" || msg === "") {
+            msgDiv.textContent = "❌ الرجاء تعبئة جميع الحقول";
+            msgDiv.className = "message error";
+            setTimeout(function() { msgDiv.className = "message"; }, 2000);
+            return;
+        }
+        
+        if(!email.includes("@")) {
+            msgDiv.textContent = "❌ الرجاء إدخال بريد إلكتروني صحيح";
+            msgDiv.className = "message error";
+            setTimeout(function() { msgDiv.className = "message"; }, 2000);
+            return;
+        }
+        
+        // تفريغ الحقول
+        document.getElementById("contactName").value = "";
+        document.getElementById("contactEmail").value = "";
+        document.getElementById("contactPhone").value = "";
+        document.getElementById("contactMsg").value = "";
+        
+        msgDiv.textContent = "✅ شكراً لتواصلك معنا! سنقوم بالرد عليك قريباً";
+        msgDiv.className = "message success";
+        setTimeout(function() { msgDiv.className = "message"; }, 3000);
+    }
+
+    // تشغيل الموقع
+    showFilters();
+    displayCars();
+</script>
+
+</body>
+</html>
